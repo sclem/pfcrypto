@@ -3,6 +3,10 @@
     "version": "0.0.1",
     "manifest_version": 2,
     "description": "cryptocurrency holdings updater",
+    "icons": {
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
     "permissions": [
         "https://home.personalcapital.com/page/login/app*",
         "https://home.personalcapital.com/api/*",
