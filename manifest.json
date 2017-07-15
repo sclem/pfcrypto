@@ -1,5 +1,6 @@
 {
-    "name": "pfcrpyto",
+    "name": "pfcrypto",
+    "short_name": "personal finance crypto tracker",
     "version": "0.0.1",
     "manifest_version": 2,
     "description": "cryptocurrency holdings updater",
