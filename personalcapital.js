@@ -7,7 +7,8 @@ function setPrices(holdings, callback) {
             var data = JSON.parse(this.responseText);
             data.forEach(function(c) {
                 holdings.forEach(function(h) {
-                    if (h.ticker.toLowerCase() === c.id) {
+                    //Trim any special characters
+                    if (h.ticker && h.ticker.toLowerCase().match(/[a-zA-Z]+/g)[0] === c.id) {
                         h.price = +c.price_usd;
                         fixed.push(h);
                     }

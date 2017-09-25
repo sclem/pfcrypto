@@ -3,6 +3,12 @@ basic chome extension to automatically update cryptocurrency holdings (any coin:
 
 ![image](https://user-images.githubusercontent.com/8977050/28240576-adb6bb18-6952-11e7-9021-974445087cff.png)
 
+### Update 09/25/17:
+
+* To address the issue with cryptocurrencies which directly match a security found by personal capital's search (such as NEO), the script has been updated to strip everything except a-z characters in the crypto ticker.
+
+Example: To successfully add NEO or another currency with the above issue, personal capital must not find the security. This can be triggered by adding a special character before/after the name of the currency. The extension will now work with the security ticker "$NEO" (without quotes)
+
 ## How it works:
 
 * This extension runs whenever a user logs into personal capital. It queries coinmarketcap API for the current ticker price and executes a POST to personalcapital API on behalf of the user.
@@ -13,6 +19,8 @@ basic chome extension to automatically update cryptocurrency holdings (any coin:
 * In personal capital, add a "Manual Investment Holdings" account. This is under "Add new account... more". If you already have this, you can skip this step.
 * Add a holding in the account edit page. Enter the full name of the crypto currency. Example: "BITCOIN". Enter the number of coins you hold (decimal is fine) and any price.
 * Log out and log back into personal capital. The price will update after about 15-20 seconds and every time you log in in the future.
+
+### Note: Throughout testing I found it to work best when each crypto holding is placed under its own account instead of multiple currencies in the same account. If you have trouble with currencies not updating when refreshing the page, try placing each into its own "Manual Investment Holdings" Account.
 
 ## Troubleshooting:
 * Make sure the security ticker in personal capital is named the same as the 'id' field (not case sensitive) for the coin from https://api.coinmarketcap.com/v1/ticker.
