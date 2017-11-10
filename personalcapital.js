@@ -45,20 +45,32 @@ function getHoldings(csrf, callback) {
 
 //update a security with new data on behalf of the user
 function updateHolding(csrf, data) {
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-        if (this.readyState === 4) {
-            console.log('success updating ' + data.ticker + ' to ' + data.price);
+    return new Promise(function(resolve, reject) {
+        try {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (this.readyState === 4) {
+                    if (this.status === 200) {
+                        resolve();
+                    }
+                    else {
+                        reject(this.statusText);
+                    }
+                }
+            };
+            xhr.open("POST", "https://home.personalcapital.com/api/account/updateHolding");
+            var formdata = new FormData();
+            formdata.append('csrf', csrf);
+            formdata.append('apiClient', 'WEB');
+            for (var key in data) {
+                formdata.append(key, data[key]);
+            }
+            xhr.send(formdata);
         }
-    };
-    xhr.open("POST", "https://home.personalcapital.com/api/account/updateHolding");
-    var formdata = new FormData();
-    formdata.append('csrf', csrf);
-    formdata.append('apiClient', 'WEB');
-    for (var key in data) {
-        formdata.append(key, data[key]);
-    }
-    xhr.send(formdata);
+        catch(err) {
+            reject(err);
+        }
+    });
 }
 
 //When page is loaded:
@@ -70,8 +82,16 @@ window.addEventListener("message", function(event) {
         var csrf = event.data.text;
         getHoldings(csrf, function(holdings) {
             setPrices(holdings, function(fixed) {
-                fixed.forEach(function(h) {
-                    updateHolding(csrf, h);
+                fixed.reduce(function(p, h) {
+                    return p.then(function(result) {
+                        return updateHolding(csrf, h).then(function(result) {
+                            console.log('success updating ' + h.ticker + ' to ' + h.price);
+                        }).catch(function(reason) {
+                            console.log('ERROR updating ' + h.ticker + ' to ' + h.price + ': ' + reason);
+                        });
+                    });
+                }, Promise.resolve()).then(function(result) {
+                    console.log('done updating holdings.');
                 });
             });
         });
