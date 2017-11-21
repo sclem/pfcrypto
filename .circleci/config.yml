@@ -37,7 +37,7 @@ jobs:
           command: |
             ./build.sh
       - persist_to_workspace:
-          root: /root/project
+          root: /home/circleci/project
           paths:
             - pfcrypto.zip
             - publish.sh
