@@ -11,7 +11,8 @@
     "permissions": [
         "https://home.personalcapital.com/page/login/app*",
         "https://home.personalcapital.com/api/*",
-        "https://api.coinmarketcap.com/v1/ticker/"
+        "https://api.coinmarketcap.com/v1/ticker/",
+        "https://api.blockcypher.com/v1/*"
     ],
     "content_scripts": [{
         "matches": [
