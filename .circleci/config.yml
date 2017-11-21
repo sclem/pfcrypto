@@ -1,0 +1,49 @@
+workflows:
+  version: 2
+  main:
+    jobs:
+      - build
+      - publish:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+
+version: 2
+jobs:
+  build:
+    docker:
+      - image: ubuntu:16.04
+    steps:
+      - checkout
+      - run:
+          name: "Install deps"
+          command: |
+            apt-get update
+            apt-get install -y curl jq zip
+      - run:
+          name: "Package Extension"
+          command: |
+            ./build.sh
+      - persist_to_workspace:
+          root: /root/project
+          paths:
+            - pfcrypto.zip
+            - publish.sh
+
+  publish:
+    docker:
+      - image: ubuntu:16.04
+    environment:
+      - APP_ID: ceepigemlmlbphjhffddplfecgedhoeb
+    steps:
+      - run:
+          command: |
+            apt-get update
+            apt-get install -y curl jq zip unzip ca-certificates
+      - attach_workspace:
+          at: /root/workspace
+      - run:
+          name: "Publish to chrome web store"
+          command: /root/workspace/publish.sh /root/workspace/pfcrypto.zip
