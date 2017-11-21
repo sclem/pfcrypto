@@ -52,8 +52,7 @@ function updateHolding(csrf, data) {
                 if (this.readyState === 4) {
                     if (this.status === 200) {
                         resolve();
-                    }
-                    else {
+                    } else {
                         reject(this.statusText);
                     }
                 }
@@ -66,8 +65,7 @@ function updateHolding(csrf, data) {
                 formdata.append(key, data[key]);
             }
             xhr.send(formdata);
-        }
-        catch(err) {
+        } catch (err) {
             reject(err);
         }
     });
