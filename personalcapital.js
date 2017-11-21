@@ -71,6 +71,70 @@ function updateHolding(csrf, data) {
     });
 }
 
+function getBlockcypherBalance(url) {
+    return new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (this.readyState === 4) {
+                if (this.status === 200) {
+                    try {
+                        var balance = JSON.parse(this.responseText);
+                        resolve(balance.balance);
+                    } catch (ex) {
+                        reject(ex);
+                    }
+                } else {
+                    reject(this.statusText);
+                }
+            }
+        };
+        xhr.open("GET", url);
+        xhr.send();
+    });
+}
+
+function getAddressBalances(accountList, callback) {
+    accountList.reduce(function(lastPromise, account) {
+        return lastPromise.then(function(result) {
+            if (account.description && account.ticker) {
+                switch (account.ticker.toLowerCase().match(/[a-z-]+/g)[0]) {
+                    case 'bitcoin':
+                        return new Promise(function(resolve, reject) {
+                            var balanceUrl = 'https://api.blockcypher.com/v1/btc/main/addrs/' + account.description + '/balance';
+                            getBlockcypherBalance(balanceUrl).then(function(balance) {
+                                var satoshi = 1e-8; //smallest unit of btc
+                                account.quantity = balance * satoshi;
+                                console.log('Resolved ' + account.ticker + ' account balance for address ' + account.description + ' as: ' + account.quantity);
+                                resolve();
+                            }, function(err) {
+                                console.log('Error retreiving ' + account.ticker + ' account balance for address ' + account.description + '. Error: ' + err);
+                                resolve();
+                            });
+                        });
+                    case 'ethereum':
+                        return new Promise(function(resolve, reject) {
+                            var balanceUrl = 'https://api.blockcypher.com/v1/eth/main/addrs/' + account.description + '/balance';
+                            getBlockcypherBalance(balanceUrl).then(function(balance) {
+                                var wei = 1e-18; //smallest unit of eth
+                                account.quantity = balance * wei;
+                                console.log('Resolved ' + account.ticker + ' account balance for address ' + account.description + ' as: ' + account.quantity);
+                                resolve();
+                            }, function(err) {
+                                console.log('Error retreiving ' + account.ticker + ' account balance for address ' + account.description + '. Error: ' + err);
+                                resolve();
+                            });
+                        });
+                }
+            }
+            //No description, no wallet address
+            return Promise.resolve();
+        });
+    }, Promise.resolve()).then(function(result) {
+        console.log('Done resolving account balances');
+        callback(accountList);
+    });
+}
+
 //When page is loaded:
 //1. get all holdings from personalcapital API
 //2. set updated prices for each holding that the ticker matches from coinmarketcap API
@@ -80,16 +144,18 @@ window.addEventListener("message", function(event) {
         var csrf = event.data.text;
         getHoldings(csrf, function(holdings) {
             setPrices(holdings, function(fixed) {
-                fixed.reduce(function(p, h) {
-                    return p.then(function(result) {
-                        return updateHolding(csrf, h).then(function(result) {
-                            console.log('success updating ' + h.ticker + ' to ' + h.price);
-                        }).catch(function(reason) {
-                            console.log('ERROR updating ' + h.ticker + ' to ' + h.price + ': ' + reason);
+                getAddressBalances(fixed, function(final) {
+                    final.reduce(function(p, h) {
+                        return p.then(function(result) {
+                            return updateHolding(csrf, h).then(function(result) {
+                                console.log('success updating ' + h.ticker + ' to ' + h.price);
+                            }).catch(function(reason) {
+                                console.log('ERROR updating ' + h.ticker + ' to ' + h.price + ': ' + reason);
+                            });
                         });
+                    }, Promise.resolve()).then(function(result) {
+                        console.log('done updating holdings.');
                     });
-                }, Promise.resolve()).then(function(result) {
-                    console.log('done updating holdings.');
                 });
             });
         });
