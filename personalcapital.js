@@ -93,37 +93,31 @@ function getBlockcypherBalance(url) {
     });
 }
 
+function updateBlockcypherBalancePromise(account, symbol, smallestUnit) {
+    return new Promise(function(resolve, reject) {
+        var balanceUrl = 'https://api.blockcypher.com/v1/' + symbol + '/main/addrs/' + account.description + '/balance';
+        getBlockcypherBalance(balanceUrl).then(function(balance) {
+            account.quantity = balance * smallestUnit;
+            console.log('Resolved ' + account.ticker + ' account balance for address ' + account.description + ' as: ' + account.quantity);
+            resolve();
+        }, function(err) {
+            console.log('Error retreiving ' + account.ticker + ' account balance for address ' + account.description + '. Error: ' + err);
+            resolve();
+        });
+    });
+}
+
 function getAddressBalances(accountList, callback) {
     accountList.reduce(function(lastPromise, account) {
         return lastPromise.then(function(result) {
             if (account.description && account.ticker) {
                 switch (account.ticker.toLowerCase().match(/[a-z-]+/g)[0]) {
                     case 'bitcoin':
-                        return new Promise(function(resolve, reject) {
-                            var balanceUrl = 'https://api.blockcypher.com/v1/btc/main/addrs/' + account.description + '/balance';
-                            getBlockcypherBalance(balanceUrl).then(function(balance) {
-                                var satoshi = 1e-8; //smallest unit of btc
-                                account.quantity = balance * satoshi;
-                                console.log('Resolved ' + account.ticker + ' account balance for address ' + account.description + ' as: ' + account.quantity);
-                                resolve();
-                            }, function(err) {
-                                console.log('Error retreiving ' + account.ticker + ' account balance for address ' + account.description + '. Error: ' + err);
-                                resolve();
-                            });
-                        });
+                        return updateBlockcypherBalancePromise(account, 'btc', 1e-8);
+                    case 'litecoin': 
+                        return updateBlockcypherBalancePromise(account, 'ltc', 1e-8);
                     case 'ethereum':
-                        return new Promise(function(resolve, reject) {
-                            var balanceUrl = 'https://api.blockcypher.com/v1/eth/main/addrs/' + account.description + '/balance';
-                            getBlockcypherBalance(balanceUrl).then(function(balance) {
-                                var wei = 1e-18; //smallest unit of eth
-                                account.quantity = balance * wei;
-                                console.log('Resolved ' + account.ticker + ' account balance for address ' + account.description + ' as: ' + account.quantity);
-                                resolve();
-                            }, function(err) {
-                                console.log('Error retreiving ' + account.ticker + ' account balance for address ' + account.description + '. Error: ' + err);
-                                resolve();
-                            });
-                        });
+                        return updateBlockcypherBalancePromise(account, 'eth', 1e-18);
                 }
             }
             //No description, no wallet address
