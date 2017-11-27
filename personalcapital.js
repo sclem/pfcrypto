@@ -113,11 +113,13 @@ function getAddressBalances(accountList, callback) {
             if (account.description && account.ticker) {
                 switch (account.ticker.toLowerCase().match(/[a-z-]+/g)[0]) {
                     case 'bitcoin':
-                        return updateBlockcypherBalancePromise(account, 'btc', 1e-8);
+                        return updateBlockcypherBalancePromise(account, 'btc', 1e-8); // 10^8 satoshis/btc
                     case 'litecoin': 
-                        return updateBlockcypherBalancePromise(account, 'ltc', 1e-8);
+                        return updateBlockcypherBalancePromise(account, 'ltc', 1e-8); // 10^8 base units/ltc
+                    case 'dogecoin': 
+                        return updateBlockcypherBalancePromise(account, 'doge', 1e-8); // 10^8 koinus/dogecoin
                     case 'ethereum':
-                        return updateBlockcypherBalancePromise(account, 'eth', 1e-18);
+                        return updateBlockcypherBalancePromise(account, 'eth', 1e-18); // 10^18 wei/eth
                 }
             }
             //No description, no wallet address
