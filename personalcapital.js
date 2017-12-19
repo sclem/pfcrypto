@@ -7,18 +7,18 @@ function setPrices(holdings, callback) {
             var data = JSON.parse(this.responseText);
             holdings.forEach(function(h) {
                 var found = false;
-                // Push original in order to get erc20 balance updates
-                if (!found && h.description && h.description.toLowerCase().slice(0, 6) === "erc20:") {
-                    fixed.push(h);
-                }
                 data.forEach(function(c) {
                     //Trim any special characters
                     if (h.ticker && h.ticker.toLowerCase().match(/[a-z-]+/g)[0] === c.id) {
                         h.price = +c.price_usd;
                         fixed.push(h);
                         found = true;
-                    }    
+                    }
                 });
+                // Push original in order to get erc20 balance updates
+                if (!found && h.description && h.description.toLowerCase().slice(0, 6) === "erc20:") {
+                    fixed.push(h);
+                }
             });
             callback(fixed);
         }
@@ -115,10 +115,11 @@ function updateBlockcypherBalancePromise(account, symbol, smallestUnit) {
 }
 
 var erc20Dictionary = {};
+
 function getErc20BalancePromise(account, symbol) {
     var ethereumAddress = account.description.slice(6);
     // Ensure that the address preceeds with 0x
-    if (ethereumAddress.slice(0,2) != "0x") {
+    if (ethereumAddress.slice(0, 2) != "0x") {
         ethereumAddress = "0x" + ethereumAddress;
     }
     return new Promise(function(resolve, reject) {
