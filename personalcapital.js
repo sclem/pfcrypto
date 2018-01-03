@@ -5,14 +5,20 @@ function setPrices(holdings, callback) {
         if (this.readyState === 4) {
             var fixed = [];
             var data = JSON.parse(this.responseText);
-            data.forEach(function(c) {
-                holdings.forEach(function(h) {
+            holdings.forEach(function(h) {
+                var found = false;
+                data.forEach(function(c) {
                     //Trim any special characters
                     if (h.ticker && h.ticker.toLowerCase().match(/[a-z-]+/g)[0] === c.id) {
                         h.price = +c.price_usd;
                         fixed.push(h);
+                        found = true;
                     }
                 });
+                // Push original in order to get erc20 balance updates
+                if (!found && h.description && h.description.toLowerCase().slice(0, 6) === "erc20:") {
+                    fixed.push(h);
+                }
             });
             callback(fixed);
         }
@@ -72,15 +78,15 @@ function updateHolding(csrf, data) {
     });
 }
 
-function getBlockcypherBalance(url) {
+function getJSON(url) {
     return new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
             if (this.readyState === 4) {
                 if (this.status === 200) {
                     try {
-                        var balance = JSON.parse(this.responseText);
-                        resolve(balance.balance);
+                        var json = JSON.parse(this.responseText);
+                        resolve(json);
                     } catch (ex) {
                         reject(ex);
                     }
@@ -95,16 +101,51 @@ function getBlockcypherBalance(url) {
 }
 
 function updateBlockcypherBalancePromise(account, symbol, smallestUnit) {
+    var balanceUrl = 'https://api.blockcypher.com/v1/' + symbol + '/main/addrs/' + account.description + '/balance';
+    return getJSON(balanceUrl).then(function(balance) {
+        var balance = data.balance;
+        if (!data.balance) {
+            throw new Error("Invalid json response");
+        }
+        account.quantity = balance * smallestUnit;
+        console.log('Resolved ' + account.ticker + ' account balance for address ' + account.description + ' as: ' + account.quantity);
+    }).catch(function(err) {
+        console.log('Error retreiving ' + account.ticker + ' account balance for address ' + account.description + '. Error: ' + err);
+    });
+}
+
+var erc20Dictionary = {};
+
+function getErc20BalancePromise(account, symbol) {
+    var ethereumAddress = account.description.slice(6);
+    // Ensure that the address preceeds with 0x
+    if (ethereumAddress.slice(0, 2) != "0x") {
+        ethereumAddress = "0x" + ethereumAddress;
+    }
     return new Promise(function(resolve, reject) {
-        var balanceUrl = 'https://api.blockcypher.com/v1/' + symbol + '/main/addrs/' + account.description + '/balance';
-        getBlockcypherBalance(balanceUrl).then(function(balance) {
-            account.quantity = balance * smallestUnit;
-            console.log('Resolved ' + account.ticker + ' account balance for address ' + account.description + ' as: ' + account.quantity);
-            resolve();
-        }, function(err) {
-            console.log('Error retreiving ' + account.ticker + ' account balance for address ' + account.description + '. Error: ' + err);
-            resolve();
+        // Check if we already fetched the result for the address
+        if (erc20Dictionary[ethereumAddress]) {
+            resolve(erc20Dictionary[ethereumAddress]);
+        }
+        // Otherwise fetch it
+        else {
+            var balanceUrl = 'https://api.ethplorer.io/getAddressInfo/' + ethereumAddress + '?apiKey=freekey';
+            resolve(getJSON(balanceUrl));
+        }
+    }).then(function(data) {
+        erc20Dictionary[ethereumAddress] = data;
+        var token = data.tokens.find(function(token) {
+            return token.tokenInfo.name.toLowerCase() == symbol || token.tokenInfo.symbol.toLowerCase() == symbol;
         });
+        var balance = 0;
+        // If token is found in the list of balances, set the balance
+        if (token) {
+            balance = token.balance / Math.pow(10, token.tokenInfo.decimals);
+        }
+        account.quantity = balance;
+        console.log('Resolved ' + account.ticker + ' account balance for address ' + ethereumAddress + ' as: ' + account.quantity);
+    }).catch(function(err) {
+        console.log('Error retreiving ' + account.ticker + ' account balance for address ' + ethereumAddress + '. Error: ' + err);
     });
 }
 
@@ -121,6 +162,9 @@ function getAddressBalances(accountList, callback) {
                         return updateBlockcypherBalancePromise(account, 'doge', 1e-8); // 10^8 koinus/dogecoin
                     case 'ethereum':
                         return updateBlockcypherBalancePromise(account, 'eth', 1e-18); // 10^18 wei/eth
+                }
+                if (account.description.toLowerCase().slice(0, 6) === "erc20:") {
+                    return getErc20BalancePromise(account, account.ticker.toLowerCase().match(/[a-z-]+/g)[0]);
                 }
             }
             //No description, no wallet address

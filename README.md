@@ -5,6 +5,10 @@ basic chome extension to automatically update cryptocurrency holdings (any coin:
 
 ## Changelog
 
+#### 12/14/17:
+
+* Address support for ERC20 Tokens. Put the wallet address in the "Account Description" field in the format "erc20:address".
+
 #### 11/21/17:
 
 * Address support for ETH and BTC. Put the wallet address in the "Account Description" field and the "number of shares" will automatically be updated along with the current price
@@ -20,7 +24,7 @@ Example: To successfully add NEO or another currency with the above issue, perso
 
 ## How it works:
 
-* This extension runs whenever a user logs into personal capital. It queries coinmarketcap API for the current ticker price and executes a POST to personalcapital API on behalf of the user. If the address of the account is set in the "Account Description" field, the script will query blockcypher's API for the balance and use that for the number of shares.
+* This extension runs whenever a user logs into personal capital. It queries coinmarketcap API for the current ticker price and executes a POST to personalcapital API on behalf of the user. If the address of the account is set in the "Account Description" field (ERC20 Tokens should be in the format "erc20:address"), the script will query blockcypher's API for the balance and use that for the number of shares.
 
 ## Usage:
 

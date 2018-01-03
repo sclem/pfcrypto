@@ -12,7 +12,8 @@
         "https://home.personalcapital.com/page/login/app*",
         "https://home.personalcapital.com/api/*",
         "https://api.coinmarketcap.com/v1/ticker/",
-        "https://api.blockcypher.com/v1/*"
+        "https://api.blockcypher.com/v1/*",
+        "https://api.ethplorer.io/getAddressInfo/*"
     ],
     "content_scripts": [{
         "matches": [
