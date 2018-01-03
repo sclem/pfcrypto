@@ -1,31 +1,40 @@
 //Get current prices and update matching holdings by ticker. Ex: 'bitcoin' === 'BITCOIN'
+
+//global regex matcher for coinmarketcap api
+var regex = /[a-z0-9-]+/g;
+
 function setPrices(holdings, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-        if (this.readyState === 4) {
-            var fixed = [];
-            var data = JSON.parse(this.responseText);
-            holdings.forEach(function(h) {
-                var found = false;
-                data.forEach(function(c) {
-                    //Trim any special characters
-                    if (h.ticker && h.ticker.toLowerCase().match(/[a-z-]+/g)[0] === c.id) {
-                        h.price = +c.price_usd;
-                        fixed.push(h);
-                        found = true;
-                    }
-                });
-                // Push original in order to get erc20 balance updates
-                if (!found && h.description && h.description.toLowerCase().slice(0, 6) === "erc20:") {
+    var fixed = [];
+    getCoins().then(function(coinmap) {
+        holdings.forEach(function(h) {
+            if (h.ticker) {
+                var matchID = h.ticker.toLowerCase().match(regex)[0];
+                if (coinmap[matchID]) {
+                    h.price = +coinmap[matchID].price_usd;
+                    fixed.push(h);
+                    // Push original in order to get erc20 balance updates
+                } else if (h.description && h.description.toLowerCase().slice(0, 6) === "erc20:") {
                     fixed.push(h);
                 }
-            });
-            callback(fixed);
-        }
-    };
-    //Get all coins
-    xhr.open("GET", "https://api.coinmarketcap.com/v1/ticker/?limit=0")
-    xhr.send();
+            }
+        });
+        callback(fixed);
+    });
+}
+
+function getCoins() {
+    return new Promise(function(resolve, reject) {
+        getJSON("https://api.coinmarketcap.com/v1/ticker/?limit=0").then(function(coins) {
+            var coinmap = coins.reduce(function(map, obj) {
+                map[obj.id] = obj;
+                return map;
+            }, {});
+            resolve(coinmap);
+        }, function(err) {
+            console.log('Error retrieving coin list from coinmarketcap: ' + err);
+            resolve({});
+        });
+    });
 }
 
 //Retreive all securities from personal capital that were added manually
@@ -153,7 +162,7 @@ function getAddressBalances(accountList, callback) {
     accountList.reduce(function(lastPromise, account) {
         return lastPromise.then(function(result) {
             if (account.description && account.ticker) {
-                switch (account.ticker.toLowerCase().match(/[a-z-]+/g)[0]) {
+                switch (account.ticker.toLowerCase().match(regex)[0]) {
                     case 'bitcoin':
                         return updateBlockcypherBalancePromise(account, 'btc', 1e-8); // 10^8 satoshis/btc
                     case 'litecoin':
@@ -164,7 +173,7 @@ function getAddressBalances(accountList, callback) {
                         return updateBlockcypherBalancePromise(account, 'eth', 1e-18); // 10^18 wei/eth
                 }
                 if (account.description.toLowerCase().slice(0, 6) === "erc20:") {
-                    return getErc20BalancePromise(account, account.ticker.toLowerCase().match(/[a-z-]+/g)[0]);
+                    return getErc20BalancePromise(account, account.ticker.toLowerCase().match(regex)[0]);
                 }
             }
             //No description, no wallet address
