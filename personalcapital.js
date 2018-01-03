@@ -102,7 +102,7 @@ function getJSON(url) {
 
 function updateBlockcypherBalancePromise(account, symbol, smallestUnit) {
     var balanceUrl = 'https://api.blockcypher.com/v1/' + symbol + '/main/addrs/' + account.description + '/balance';
-    return getJSON(balanceUrl).then(function(balance) {
+    return getJSON(balanceUrl).then(function(data) {
         var balance = data.balance;
         if (!data.balance) {
             throw new Error("Invalid json response");
