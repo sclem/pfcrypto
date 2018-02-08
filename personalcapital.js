@@ -27,6 +27,7 @@ function getCoins() {
         getJSON("https://api.coinmarketcap.com/v1/ticker/?limit=0").then(function(coins) {
             var coinmap = coins.reduce(function(map, obj) {
                 map[obj.id] = obj;
+                map[obj.symbol.toLowerCase()] = obj;
                 return map;
             }, {});
             resolve(coinmap);
