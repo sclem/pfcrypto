@@ -41,7 +41,7 @@ Example: To successfully add NEO or another currency with the above issue, perso
   - Example: 'symbol' is 'BTC', security ticker is 'BTC'
 * When entering a security ticker, personal capital will automatically search for a description matching the ticker. If it finds a description, then the extension may not work even if you delete the auto-populated description or replace it. To prevent personal capital from finding a matching description, place a special character such as "$" at the beginning of the ticker
   - Example: Typing in the security ticker 'OMG' will automatically fill the description with and prevent the extension from working. Typing '$OMG' for the ticker does not have a matching description and allows the extension to work.
-* If the price is updated for an ERC20 token but not the shares then it may be that the ERC20 token is not listed in the API. To check which tokens appear under your address, go to https://ethplorer.io/address/&lt;youraddress&gt;
+* If the price is updated for an ERC20 token but not the shares then it may be that the ERC20 token is not listed in the API. To check which tokens appear under your address, go to `https://ethplorer.io/address/<youraddress>`
 
 ## Notes:
 
