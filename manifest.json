@@ -1,7 +1,7 @@
 {
     "name": "pfcrypto",
     "short_name": "personal finance crypto tracker",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "manifest_version": 2,
     "description": "cryptocurrency holdings updater",
     "icons": {
