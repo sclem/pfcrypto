@@ -30,14 +30,18 @@ Example: To successfully add NEO or another currency with the above issue, perso
 
 * Install the extension.
 * In personal capital, add a "Manual Investment Holdings" account. This is under "Add new account... more". If you already have this, you can skip this step.
-* Add a holding in the account edit page. Enter the full name of the crypto currency. Example: "BITCOIN". Enter the number of coins you hold (decimal is fine) and any price.
+* Add a holding in the account edit page. Enter the full name of the crypto currency, or the ticker symbol. Example: "BITCOIN" or "BTC". Enter the number of coins you hold (decimal is fine) and any price.
 * Log out and log back into personal capital. The price will update after about 15-20 seconds and every time you log in in the future.
 
 ~~### Note: Throughout testing I found it to work best when each crypto holding is placed under its own account instead of multiple currencies in the same account. If you have trouble with currencies not updating when refreshing the page, try placing each into its own "Manual Investment Holdings" Account.~~ *Fixed in 0.0.3*
 
 ## Troubleshooting:
-* Make sure the security ticker in personal capital is named the same as the 'id' field (not case sensitive) for the coin from https://api.coinmarketcap.com/v1/ticker.
+* Make sure the security ticker in personal capital is named the same as the 'id' field (not case sensitive) or the 'symbol' field (not case sensitive) for the coin from https://api.coinmarketcap.com/v1/ticker.
   - Example: 'id' is 'bitcoin', security ticker is 'BITCOIN'
+  - Example: 'symbol' is 'BTC', security ticker is 'BTC'
+* When entering a security ticker, personal capital will automatically search for a description matching the ticker. If it finds a description, then the extension may not work even if you delete the auto-populated description or replace it. To prevent personal capital from finding a matching description, place a special character such as "$" at the beginning of the ticker
+  - Example: Typing in the security ticker 'OMG' will automatically fill the description with and prevent the extension from working. Typing '$OMG' for the ticker does not have a matching description and allows the extension to work.
+* If the price is updated for an ERC20 token but not the shares then it may be that the ERC20 token is not listed in the API. To check which tokens appear under your address, go to https://ethplorer.io/address/&lt;youraddress&gt;
 
 ## Notes:
 
