@@ -5,6 +5,10 @@ basic chome extension to automatically update cryptocurrency holdings (any coin:
 
 ## Changelog
 
+#### 02/07/18:
+
+* Address support for referencing coins by ticker symbol. Set the personal capital security ticker to "$SYMBOL", such as "$BTC"
+
 #### 12/14/17:
 
 * Address support for ERC20 Tokens. Put the wallet address in the "Account Description" field in the format "erc20:address".
