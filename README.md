@@ -64,6 +64,6 @@ Example: To successfully add NEO or another currency with the above issue, perso
 
 I made this because I wanted the feature myself, it is completely free. If you want to donate:
 
-BTC: 1nhKt67cEAyVZPjZrvQg2QBTa9zgmwMVL
+BTC: 3R2FFc824w9RL3C9dL6psm1J16uveNT7ht
 
-ETH: 5258B7bC1C917839e7523830a6b301756b1c71f2
+ETH: e9172B7c13f32e3384431dd17D478A00F4A6945D
