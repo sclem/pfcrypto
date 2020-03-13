@@ -1,7 +1,7 @@
 {
     "name": "pfcrypto",
     "short_name": "personal finance crypto tracker",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "manifest_version": 2,
     "description": "cryptocurrency holdings updater",
     "icons": {
@@ -11,7 +11,7 @@
     "permissions": [
         "https://home.personalcapital.com/page/login/app*",
         "https://home.personalcapital.com/api/*",
-        "https://api.coinmarketcap.com/v1/ticker/",
+        "https://api.alternative.me/v1/ticker/",
         "https://api.blockcypher.com/v1/*",
         "https://api.ethplorer.io/getAddressInfo/*"
     ],

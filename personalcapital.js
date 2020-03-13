@@ -3,6 +3,8 @@
 //global regex matcher for coinmarketcap api
 var regex = /[a-z0-9-]+/g;
 
+var TICKER_API_URL = "https://api.alternative.me/v1/ticker/?limit=0";
+
 function setPrices(holdings, callback) {
     var fixed = [];
     getCoins().then(function(coinmap) {
@@ -24,7 +26,7 @@ function setPrices(holdings, callback) {
 
 function getCoins() {
     return new Promise(function(resolve, reject) {
-        getJSON("https://api.coinmarketcap.com/v1/ticker/?limit=0").then(function(coins) {
+        getJSON(TICKER_API_URL).then(function(coins) {
             var coinmap = coins.reduce(function(map, obj) {
                 map[obj.id] = obj;
                 map[obj.symbol.toLowerCase()] = obj;
