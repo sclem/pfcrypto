@@ -5,6 +5,10 @@ basic chome extension to automatically update cryptocurrency holdings (any coin:
 
 ## Changelog
 
+#### 03/13/2020:
+
+* Change to use api.alternative.me/v1/ticker, coinmarketcap/v1 is deprecated.
+
 #### 02/07/18:
 
 * Address support for referencing coins by ticker symbol. Set the personal capital security ticker to "$SYMBOL", such as "$BTC"
@@ -28,7 +32,7 @@ Example: To successfully add NEO or another currency with the above issue, perso
 
 ## How it works:
 
-* This extension runs whenever a user logs into personal capital. It queries coinmarketcap API for the current ticker price and executes a POST to personalcapital API on behalf of the user. If the address of the account is set in the "Account Description" field (ERC20 Tokens should be in the format "erc20:address"), the script will query blockcypher's API for the balance and use that for the number of shares.
+* This extension runs whenever a user logs into personal capital. It queries api.alternative.me API for the current ticker price and executes a POST to personalcapital API on behalf of the user. If the address of the account is set in the "Account Description" field (ERC20 Tokens should be in the format "erc20:address"), the script will query blockcypher's API for the balance and use that for the number of shares.
 
 ## Usage:
 
@@ -40,7 +44,7 @@ Example: To successfully add NEO or another currency with the above issue, perso
 ~~### Note: Throughout testing I found it to work best when each crypto holding is placed under its own account instead of multiple currencies in the same account. If you have trouble with currencies not updating when refreshing the page, try placing each into its own "Manual Investment Holdings" Account.~~ *Fixed in 0.0.3*
 
 ## Troubleshooting:
-* Make sure the security ticker in personal capital is named the same as the 'id' field (not case sensitive) or the 'symbol' field (not case sensitive) for the coin from https://api.coinmarketcap.com/v1/ticker.
+* Make sure the security ticker in personal capital is named the same as the 'id' field (not case sensitive) or the 'symbol' field (not case sensitive) for the coin from https://api.alternative.me/v1/ticker.
   - Example: 'id' is 'bitcoin', security ticker is 'BITCOIN'
   - Example: 'symbol' is 'BTC', security ticker is 'BTC'
 * When entering a security ticker, personal capital will automatically search for a description matching the ticker. If it finds a description, then the extension may not work even if you delete the auto-populated description or replace it. To prevent personal capital from finding a matching description, place a special character such as "$" at the beginning of the ticker
