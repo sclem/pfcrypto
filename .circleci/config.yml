@@ -21,17 +21,12 @@ jobs:
           name: "Install deps"
           command: |
             sudo apt-get update -y
-            sudo apt-get install -y curl jq zip diffutils
-            sudo npm install -g js-beautify
+            sudo apt-get install -y zip
+            sudo npm install -g prettier
       - run:
-          name: "beautify test"
+          name: "prettier test"
           command: |
-            output=$(find $PWD -type f -name *.js -exec bash -c "js-beautify -n {} | diff {} -;" \;)
-            if [[ ! -z "$output" ]]; then
-              echo "javascript not clean: "
-              echo $output
-              exit 1
-            fi
+            find $PWD -type f -name *.js | xargs -I {} prettier --check {}
       - run:
           name: "Package Extension"
           command: |
