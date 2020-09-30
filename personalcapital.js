@@ -24,8 +24,8 @@ const fetchBackgroundData = (url) => {
 class PersonalCapitalHolding {
   // regex match coin ticker so coins can override a real security
   // match a-z,0-9,dash and space
-  static tickerRegex = /[a-z0-9- ]+/g;
   constructor(data) {
+    this.tickerRegex = /[a-z0-9- ]+/g;
     this.data = data || {};
     this.priceSet = false;
     this.sharesSet = false;
@@ -35,7 +35,7 @@ class PersonalCapitalHolding {
   }
   getTicker() {
     if (this.data.ticker) {
-      return this.data.ticker.toLowerCase().match(PersonalCapitalHolding.tickerRegex)[0].trim();
+      return this.data.ticker.toLowerCase().match(this.tickerRegex)[0].trim();
     }
     return null;
   }
@@ -133,7 +133,7 @@ class CryptoCoin {
 // CoinmarketcapAPI implements fetchCoins, returning a mapping of CryptoCoin ->
 // prices
 class CoinmarketcapAPI {
-  static async fetchCoins() {
+  async fetchCoins() {
     const url = `https://api.alternative.me/v1/ticker/?limit=0`;
     const resp = await fetchBackgroundData(url);
     let coinMap = {};
@@ -170,26 +170,28 @@ class CoinmarketcapAPI {
 
 // BlockCypherAPI used to get wallet balances
 class BlockCypherAPI {
-  static balanceMap = {
-    bitcoin: {
-      key: 'btc',
-      unit: 1e-8, // 10^8 satoshis/btc
-    },
-    litecoin: {
-      key: 'ltc',
-      unit: 1e-8, // 10^8 base units/ltc
-    },
-    dogecoin: {
-      key: 'doge',
-      unit: 1e-8, // 10^8 koinus/dogecoin
-    },
-    ethereum: {
-      key: 'eth',
-      unit: 1e-18, // 10^18 wei/eth
-    },
-  };
-  static async getBalance(symbol, address) {
-    const { key, unit } = BlockCypherAPI.balanceMap[symbol] || {};
+  constructor() {
+    this.balanceMap = {
+      bitcoin: {
+        key: 'btc',
+        unit: 1e-8, // 10^8 satoshis/btc
+      },
+      litecoin: {
+        key: 'ltc',
+        unit: 1e-8, // 10^8 base units/ltc
+      },
+      dogecoin: {
+        key: 'doge',
+        unit: 1e-8, // 10^8 koinus/dogecoin
+      },
+      ethereum: {
+        key: 'eth',
+        unit: 1e-18, // 10^18 wei/eth
+      },
+    };
+  }
+  async getBalance(symbol, address) {
+    const { key, unit } = this.balanceMap[symbol] || {};
     if (key) {
       const url = `https://api.blockcypher.com/v1/${key}/main/addrs/${address}/balance`;
       const resp = await fetchBackgroundData(url);
@@ -285,6 +287,7 @@ const main = async (csrf, tickerAPI) => {
 
   console.log(`mapping wallet balances for ${cryptoAccounts.length} accounts...`);
   const ethpAPI = new EthplorerAPI();
+  const bcypherAPI = new BlockCypherAPI();
   let balanceCount = 0;
   const finalAccounts = await Promise.all(
     cryptoAccounts.map(async (account) => {
@@ -301,7 +304,7 @@ const main = async (csrf, tickerAPI) => {
               balanceCount++;
             }
           } else {
-            balance = await BlockCypherAPI.getBalance(coinTicker, walletAddr);
+            balance = await bcypherAPI.getBalance(coinTicker, walletAddr);
             if (balance !== null) {
               account.setShares(balance);
               balanceCount++;
@@ -351,7 +354,8 @@ window.addEventListener(
       // in the future we can create another class to use a different API, as
       // long as the class implements fetchCoins() returning a map of [id] =>
       // CryptoCoin, it can be swapped out.
-      main(csrf, CoinmarketcapAPI);
+      const tickerAPI = new CoinmarketcapAPI();
+      main(csrf, tickerAPI);
     }
   },
   false
