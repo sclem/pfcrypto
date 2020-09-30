@@ -20,7 +20,7 @@ jobs:
       - run:
           name: "prettier test"
           command: |
-            find $PWD -type f -name *.js | xargs -I {} prettier --check {}
+            find $PWD -type f -name "*.js" | xargs -I {} prettier --check {}
       - run:
           name: "Package Extension"
           command: |

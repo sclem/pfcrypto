@@ -1,12 +1,16 @@
 {
     "name": "pfcrypto",
     "short_name": "personal finance crypto tracker",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "manifest_version": 2,
     "description": "cryptocurrency holdings updater",
     "icons": {
         "48": "icons/icon48.png",
         "128": "icons/icon128.png"
+    },
+    "background": {
+        "scripts": ["background.js"],
+        "persistent": false
     },
     "permissions": [
         "https://home.personalcapital.com/page/login/app*",

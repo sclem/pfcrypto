@@ -1,5 +1,25 @@
 'use strict';
 
+// move external requests to background page for CORS
+const fetchBackgroundData = (url) => {
+  return new Promise((resolve, reject) => {
+    // cancel if no response after timeout
+    const timeout = setTimeout(() => {
+      reject();
+    }, 20000);
+    chrome.runtime.sendMessage(
+      {
+        action: 'pfcrypto_request',
+        url,
+      },
+      (resp) => {
+        clearTimeout(timeout);
+        resolve(resp);
+      }
+    );
+  });
+};
+
 // PersonalCapitalHolding represents a single crypto holding in PC
 class PersonalCapitalHolding {
   // regex match coin ticker so coins can override a real security
@@ -15,10 +35,7 @@ class PersonalCapitalHolding {
   }
   getTicker() {
     if (this.data.ticker) {
-      return this.data.ticker
-        .toLowerCase()
-        .match(PersonalCapitalHolding.tickerRegex)[0]
-        .trim();
+      return this.data.ticker.toLowerCase().match(PersonalCapitalHolding.tickerRegex)[0].trim();
     }
     return null;
   }
@@ -71,20 +88,20 @@ class PersonalCapitalAPI {
     const formdata = this.getCredentialFormData();
     const resp = await fetch(url, {
       method: 'POST',
-      body: formdata
+      body: formdata,
     });
     let holdings = [];
     if (resp.ok) {
       const data = await resp.json();
       holdings = data.spData.holdings
-        .filter(c => {
+        .filter((c) => {
           return c.source === 'USER';
         })
-        .map(h => new PersonalCapitalHolding(h));
+        .map((h) => new PersonalCapitalHolding(h));
     }
     return {
       holdings,
-      ok: resp.ok
+      ok: resp.ok,
     };
   }
 
@@ -97,7 +114,7 @@ class PersonalCapitalAPI {
     }
     return await fetch(url, {
       method: 'POST',
-      body: formdata
+      body: formdata,
     });
   }
 }
@@ -118,11 +135,11 @@ class CryptoCoin {
 class CoinmarketcapAPI {
   static async fetchCoins() {
     const url = `https://api.alternative.me/v1/ticker/?limit=0`;
-    const resp = await fetch(url);
+    const resp = await fetchBackgroundData(url);
     let coinMap = {};
     if (resp.ok) {
-      const rawCoins = await resp.json();
-      rawCoins.forEach(rc => {
+      const rawCoins = resp.data;
+      rawCoins.forEach((rc) => {
         let added = false;
         // add coins by id, name, symbol, don't allow overwrite
         if (!coinMap[rc.id]) {
@@ -146,7 +163,7 @@ class CoinmarketcapAPI {
     }
     return {
       coinMap,
-      ok: resp.ok
+      ok: resp.ok,
     };
   }
 }
@@ -156,28 +173,28 @@ class BlockCypherAPI {
   static balanceMap = {
     bitcoin: {
       key: 'btc',
-      unit: 1e-8 // 10^8 satoshis/btc
+      unit: 1e-8, // 10^8 satoshis/btc
     },
     litecoin: {
       key: 'ltc',
-      unit: 1e-8 // 10^8 base units/ltc
+      unit: 1e-8, // 10^8 base units/ltc
     },
     dogecoin: {
       key: 'doge',
-      unit: 1e-8 // 10^8 koinus/dogecoin
+      unit: 1e-8, // 10^8 koinus/dogecoin
     },
     ethereum: {
       key: 'eth',
-      unit: 1e-18 // 10^18 wei/eth
-    }
+      unit: 1e-18, // 10^18 wei/eth
+    },
   };
   static async getBalance(symbol, address) {
     const { key, unit } = BlockCypherAPI.balanceMap[symbol] || {};
     if (key) {
       const url = `https://api.blockcypher.com/v1/${key}/main/addrs/${address}/balance`;
-      const resp = await fetch(url);
+      const resp = await fetchBackgroundData(url);
       if (resp.ok) {
-        const data = await resp.json();
+        const data = resp.data;
         return data.balance * unit;
       }
     }
@@ -194,12 +211,12 @@ class EthplorerAPI {
     // only query api if not found
     if (!this.erc20Dictionary[ethereumAddress]) {
       const url = `https://api.ethplorer.io/getAddressInfo/${ethereumAddress}?apiKey=freekey`;
-      const ercResp = await fetch(url);
+      const ercResp = await fetchBackgroundData(url);
       if (ercResp.ok) {
-        this.erc20Dictionary[ethereumAddress] = await ercResp.json();
+        this.erc20Dictionary[ethereumAddress] = ercResp.data;
       }
     }
-    const token = this.erc20Dictionary[ethereumAddress].tokens.find(token => {
+    const token = this.erc20Dictionary[ethereumAddress].tokens.find((token) => {
       return (
         token.tokenInfo.name.toLowerCase() === symbol ||
         token.tokenInfo.symbol.toLowerCase() === symbol
@@ -223,7 +240,7 @@ const main = async (csrf, tickerAPI) => {
 
   const [holdingsResp, coinsResp] = await Promise.all([
     pcAPI.getUserPCHoldings(),
-    tickerAPI.fetchCoins()
+    tickerAPI.fetchCoins(),
   ]);
   const { holdings = [], ok: holdingsOk = false } = holdingsResp;
   if (!holdingsOk) {
@@ -270,7 +287,7 @@ const main = async (csrf, tickerAPI) => {
   const ethpAPI = new EthplorerAPI();
   let balanceCount = 0;
   const finalAccounts = await Promise.all(
-    cryptoAccounts.map(async account => {
+    cryptoAccounts.map(async (account) => {
       const coinTicker = account.getTicker();
       const walletAddr = account.getWalletAddress();
       if (coinTicker && walletAddr) {
@@ -328,7 +345,7 @@ const main = async (csrf, tickerAPI) => {
 
 window.addEventListener(
   'message',
-  event => {
+  (event) => {
     if (event.source === window && event.data.type && event.data.type == 'PFCRYPTO_CSRF') {
       const csrf = event.data.text;
       // in the future we can create another class to use a different API, as
